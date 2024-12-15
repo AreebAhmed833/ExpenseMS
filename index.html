@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            /* Light Mode Colors */
+            --bg-primary-light: #f4f7fa;
+            --bg-secondary-light: #ffffff;
+            --text-primary-light: #2c3e50;
+            --text-secondary-light: #7f8c8d;
+            --accent-color-light: #3498db;
+            --accent-color-hover-light: #2980b9;
+
+            /* Dark Mode Colors */
+            --bg-primary-dark: #121212;
+            --bg-secondary-dark: #1e1e1e;
+            --text-primary-dark: #e0e0e0;
+            --text-secondary-dark: #a0a0a0;
+            --accent-color-dark: #4CAF50;
+            --accent-color-hover-dark: #45a049;
+
+            /* Shared Colors */
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --border-radius: 12px;
+
+            /* Default to Light Mode */
+            --bg-primary: var(--bg-primary-light);
+            --bg-secondary: var(--bg-secondary-light);
+            --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light);
+            --accent-color: var(--accent-color-light);
+            --accent-color-hover: var(--accent-color-hover-light);
+        }
+
+        body.dark-mode {
+            --bg-primary: var(--bg-primary-dark);
+            --bg-secondary: var(--bg-secondary-dark);
+            --text-primary: var(--text-primary-dark);
+            --text-secondary: var(--text-secondary-dark);
+            --accent-color: var(--accent-color-dark);
+            --accent-color-hover: var(--accent-color-hover-dark);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 5px 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .dark-mode-toggle i {
+            margin-right: 5px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .financial-insights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .insight-card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .transactions-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .main-section, .transaction-section {
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .transaction-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.5em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--text-secondary);
+            border-radius: 8px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--accent-color);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-color-hover);
+        }
+
+        #expensePieChart {
+            max-height: 400px;
+            margin: 20px auto;
+        }
+
+        .transaction-history {
+            margin-top: 20px;
+        }
+
+        .transaction-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid var(--bg-primary);
+        }
+
+        .transaction-type-income {
+            color: var(--success-color);
+        }
+
+        .transaction-type-expense {
+            color: var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            .transactions-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dark-mode-toggle" id="darkModeToggle">
+        <i class="fas fa-moon"></i>
+        Dark Mode
+    </div>
+
+    <div class="container">
+        <div class="financial-insights">
+            <div class="insight-card">
+                <div class="icon"><i class="fas fa-wallet"></i></div>
+                <div class="value" id="totalBalance">₹0</div>
+                <small>Total Balance</small>
+            </div>
+            <div class="insight-card">
+                <div class="icon"><i class="fas fa-arrow-up"></i></div>
+                <div class="value" id="monthlyIncome">₹0</div>
+                <small>Monthly Income</small>
+            </div>
+            <div class="insight-card">
+                <div class="icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="value" id="monthlyExpenses">₹0</div>
+                <small>Monthly Expenses</small>
+            </div>
+        </div>
+
+        <canvas id="expensePieChart"></canvas>
+
+        <div class="transactions-container">
+            <div class="transaction-section">
+                <h2 class="section-title">Add Expense</h2>
+                <select id="expenseCategory" class="form-control">
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="number" id="expenseAmount" class="form-control" placeholder="Amount">
+                <button id="addExpenseBtn" class="btn">Add Expense</button>
+            </div>
+
+            <div class="transaction-section">
+                <h2 class="section-title">Add Income</h2>
+                <input type="text" id="incomeSource" class="form-control" placeholder="Income Source">
+                <input type="number" id="incomeAmount" class="form-control" placeholder="Amount">
+                <button id="addIncomeBtn" class="btn">Add Income</button>
+            </div>
+        </div>
+
+        <div class="main-section">
+            <div class="transaction-history">
+                <h2 class="section-title">Recent Transactions</h2>
+                <ul id="transactionList" class="transaction-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            
+            // Update icon based on mode
+            const icon = darkModeToggle.querySelector('i');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+
+        // Financial State Management
+        let totalBalance = 0;
+        let monthlyIncome = 0;
+        let monthlyExpenses = 0;
+
+        // Expense Categories Tracking
+        const expenseCategories = {
+            'Food': 0,
+            'Transport': 0,
+            'Rent': 0,
+            'Utilities': 0,
+            'Entertainment': 0,
+            'Other': 0
+        };
+
+        // DOM Elements
+        const totalBalanceEl = document.getElementById('totalBalance');
+        const monthlyIncomeEl = document.getElementById('monthlyIncome');
+        const monthlyExpensesEl = document.getElementById('monthlyExpenses');
+        const transactionList = document.getElementById('transactionList');
+
+        // Expense Pie Chart
+        const ctx = document.getElementById('expensePieChart').getContext('2d');
+        const expensePieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(expenseCategories),
+                datasets: [{
+                    data: Object.values(expenseCategories),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Expense Categories'
+                    }
+                }
+            }
+        });
+
+        // Transaction History
+        function addTransaction(type, details, amount) {
+            const transactionItem = document.createElement('li');
+            transactionItem.classList.add('transaction-item');
+            transactionItem.innerHTML = `
+                <span class="transaction-type-${type}">${type === 'income' ? '+' : '-'} ${details}</span>
+                <span class="transaction-type-${type}">₹${amount}</span>
+            `;
+            transactionList.prepend(transactionItem);
+
+            // Update financial state
+            if (type === 'income') {
+                totalBalance += amount;
+                monthlyIncome += amount;
+            } else {
+                totalBalance -= amount;
+                monthlyExpenses += amount;
+
+                // Update expense category
+                const categoryName = document.getElementById('expenseCategory').value;
+                expenseCategories[categoryName] += amount;
+
+                // Update pie chart
+                expensePieChart.data.datasets[0].data = Object.values(expenseCategories);
+                expensePieChart.update();
+            }
+
+            // Update displays
+            totalBalanceEl.textContent = `₹${totalBalance.toFixed(2)}`;
+            monthlyIncomeEl.textContent = `₹${monthlyIncome.toFixed(2)}`;
+            monthlyExpensesEl.textContent = `₹${monthlyExpenses.toFixed(2)}`;
+        }
+
+        // Event Listeners
+        document.getElementById('addIncomeBtn').addEventListener('click', () => {
+            const source = document.getElementById('incomeSource').value;
+            const amount = parseFloat(document.getElementById('incomeAmount').value);
+
+            if (source && amount > 0) {
+                addTransaction('income', source, amount);
+                document.getElementById('incomeSource').value = '';
+                document.getElementById('incomeAmount').value = '';
+            }
+        });
+
+        document.getElementById('addExpenseBtn').addEventListener('click', () => {
+            const category = document.getElementById('expenseCategory').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+            if (category && amount > 0) {
+                addTransaction('expense', category, amount);
+                document.getElementById('expenseAmount').value = '';
+            }
+        });
+    </script>
+</body>
+</html>
