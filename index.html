@@ -190,6 +190,19 @@
             color: var(--danger-color);
         }
 
+        /* New style for financial insight values */
+        #totalBalance {
+            color: #2ecc71; /* Green for total balance */
+        }
+
+        #monthlyIncome {
+            color: #2ecc71; /* Green for monthly income */
+        }
+
+        #monthlyExpenses {
+            color: #e74c3c; /* Red for monthly expenses */
+        }
+
         @media (max-width: 768px) {
             .transactions-container {
                 grid-template-columns: 1fr;
@@ -278,6 +291,7 @@
 
         // Expense Categories Tracking
         const expenseCategories = {
+            'Total Balance': 0,
             'Food': 0,
             'Transport': 0,
             'Rent': 0,
@@ -301,6 +315,7 @@
                 datasets: [{
                     data: Object.values(expenseCategories),
                     backgroundColor: [
+                        'rgba(46, 204, 113, 0.6)', // Green for Total Balance
                         'rgba(255, 99, 132, 0.6)',
                         'rgba(54, 162, 235, 0.6)',
                         'rgba(255, 206, 86, 0.6)',
@@ -316,7 +331,7 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Expense Categories'
+                        text: 'Expense Categories and Total Balance'
                     }
                 }
             }
@@ -336,6 +351,8 @@
             if (type === 'income') {
                 totalBalance += amount;
                 monthlyIncome += amount;
+                // Update Total Balance category
+                expenseCategories['Total Balance'] = totalBalance;
             } else {
                 totalBalance -= amount;
                 monthlyExpenses += amount;
@@ -343,16 +360,18 @@
                 // Update expense category
                 const categoryName = document.getElementById('expenseCategory').value;
                 expenseCategories[categoryName] += amount;
-
-                // Update pie chart
-                expensePieChart.data.datasets[0].data = Object.values(expenseCategories);
-                expensePieChart.update();
+                // Also update Total Balance category
+                expenseCategories['Total Balance'] = totalBalance;
             }
 
             // Update displays
             totalBalanceEl.textContent = `₹${totalBalance.toFixed(2)}`;
             monthlyIncomeEl.textContent = `₹${monthlyIncome.toFixed(2)}`;
             monthlyExpensesEl.textContent = `₹${monthlyExpenses.toFixed(2)}`;
+
+            // Update pie chart
+            expensePieChart.data.datasets[0].data = Object.values(expenseCategories);
+            expensePieChart.update();
         }
 
         // Event Listeners
